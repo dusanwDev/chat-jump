@@ -191,8 +191,12 @@
       resetNavigation();
       setTimeout(() => {
         getArticles();
-        // Detect where user is positioned after chat loads (usually at bottom)
-        detectCurrentArticle();
+        // ChatGPT always scrolls to bottom when switching chats
+        // Set position to last message so up arrow works immediately
+        if (articles.length > 0) {
+          currentIndex = articles.length - 1;
+        }
+        updateButtonStates();
       }, 500); // Small delay to let new content load
     }
   }
