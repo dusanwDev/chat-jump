@@ -10,6 +10,7 @@
 
   let currentIndex = -1;
   let articles = [];
+  let lastUrl = window.location.href;
 
   // Create navigation buttons
   function createNavigationButtons() {
@@ -62,6 +63,14 @@
     document.addEventListener('keydown', handleKeyboard);
 
     console.log('🎹 Keyboard shortcuts registered (Alt + Arrow Up/Down)');
+  }
+
+  // Reset navigation state (when switching chats)
+  function resetNavigation() {
+    console.log('🔄 Resetting navigation state (chat switched)');
+    currentIndex = -1;
+    articles = [];
+    updateButtonStates();
   }
 
   // Get all conversation articles
@@ -203,6 +212,22 @@
     updateButtonStates();
   }
 
+  // Detect URL changes (for when user switches between chats)
+  function checkUrlChange() {
+    const currentUrl = window.location.href;
+    if (currentUrl !== lastUrl) {
+      console.log('🔀 URL changed!');
+      console.log('   Old:', lastUrl);
+      console.log('   New:', currentUrl);
+      lastUrl = currentUrl;
+      // URL changed - reset and rescan
+      resetNavigation();
+      setTimeout(() => {
+        getArticles();
+      }, 500); // Small delay to let new content load
+    }
+  }
+
   // Initialize the extension
   function init() {
     console.log('🎬 Initializing extension...');
@@ -240,9 +265,33 @@
       }, 100);
     });
 
+    // Monitor URL changes for SPA navigation (when switching between chats)
+    console.log('👁️ Setting up URL change monitoring...');
+
+    // Method 1: Intercept History API
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function() {
+      originalPushState.apply(this, arguments);
+      checkUrlChange();
+    };
+
+    history.replaceState = function() {
+      originalReplaceState.apply(this, arguments);
+      checkUrlChange();
+    };
+
+    // Method 2: Listen to popstate (back/forward buttons)
+    window.addEventListener('popstate', checkUrlChange);
+
+    // Method 3: Periodic check as fallback (every 1 second)
+    setInterval(checkUrlChange, 1000);
+
     console.log('✅ Extension initialization complete!');
     console.log('💡 TIP: Look for buttons in the bottom-right corner');
     console.log('💡 TIP: Use Alt + Arrow Up/Down to navigate');
+    console.log('💡 TIP: Extension will auto-detect when you switch chats');
   }
 
   // Wait for page to be ready

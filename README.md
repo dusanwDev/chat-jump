@@ -9,6 +9,7 @@ A Chrome extension that adds navigation buttons to quickly jump between question
 - 🎨 **Smart Design**: Adapts to light/dark mode, responsive for mobile
 - ✨ **Visual Feedback**: Smooth scrolling with highlight effect on the current message
 - 🔄 **Auto-Update**: Automatically detects new messages in the conversation
+- 🔀 **Smart Chat Switching**: Automatically detects when you switch between chats and updates button states
 
 ## Installation
 
@@ -48,6 +49,8 @@ The extension:
 3. Tracks your current position in the conversation
 4. Provides smooth scrolling and visual feedback
 5. Updates automatically when new messages appear
+6. Monitors URL changes to detect when you switch between chats
+7. Automatically resets and rescans messages when switching conversations
 
 ## Customization
 

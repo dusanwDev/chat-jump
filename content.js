@@ -6,6 +6,7 @@
 
   let currentIndex = -1;
   let articles = [];
+  let lastUrl = window.location.href;
 
   // Create navigation buttons
   function createNavigationButtons() {
@@ -50,6 +51,13 @@
 
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboard);
+  }
+
+  // Reset navigation state (when switching chats)
+  function resetNavigation() {
+    currentIndex = -1;
+    articles = [];
+    updateButtonStates();
   }
 
   // Get all conversation articles
@@ -174,6 +182,19 @@
     updateButtonStates();
   }
 
+  // Detect URL changes (for when user switches between chats)
+  function checkUrlChange() {
+    const currentUrl = window.location.href;
+    if (currentUrl !== lastUrl) {
+      lastUrl = currentUrl;
+      // URL changed - reset and rescan
+      resetNavigation();
+      setTimeout(() => {
+        getArticles();
+      }, 500); // Small delay to let new content load
+    }
+  }
+
   // Initialize the extension
   function init() {
     createNavigationButtons();
@@ -202,6 +223,27 @@
         detectCurrentArticle();
       }, 100);
     });
+
+    // Monitor URL changes for SPA navigation (when switching between chats)
+    // Method 1: Intercept History API
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function() {
+      originalPushState.apply(this, arguments);
+      checkUrlChange();
+    };
+
+    history.replaceState = function() {
+      originalReplaceState.apply(this, arguments);
+      checkUrlChange();
+    };
+
+    // Method 2: Listen to popstate (back/forward buttons)
+    window.addEventListener('popstate', checkUrlChange);
+
+    // Method 3: Periodic check as fallback (every 1 second)
+    setInterval(checkUrlChange, 1000);
   }
 
   // Wait for page to be ready
