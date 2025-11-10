@@ -51,6 +51,10 @@
 
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboard);
+
+    // Ctrl + Scroll wheel navigation
+    // Use passive: false to allow preventDefault() for stopping zoom
+    document.addEventListener('wheel', handleWheel, { passive: false });
   }
 
   // Reset navigation state (when switching chats)
@@ -159,6 +163,24 @@
         navigateUp();
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
+        navigateDown();
+      }
+    }
+  }
+
+  // Handle Ctrl + Scroll for navigation
+  function handleWheel(e) {
+    // Only handle if Ctrl key is pressed
+    if (e.ctrlKey) {
+      // Prevent default zoom behavior
+      e.preventDefault();
+
+      // deltaY < 0 means scrolling up, > 0 means scrolling down
+      if (e.deltaY < 0) {
+        // Scrolling up with Ctrl = navigate to previous message
+        navigateUp();
+      } else if (e.deltaY > 0) {
+        // Scrolling down with Ctrl = navigate to next message
         navigateDown();
       }
     }

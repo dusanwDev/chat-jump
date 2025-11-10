@@ -6,6 +6,7 @@ A Chrome extension that adds navigation buttons to quickly jump between question
 
 - 🎯 **Quick Navigation**: Two floating buttons (up/down arrows) in the bottom right corner
 - ⌨️ **Keyboard Shortcuts**: Use `Alt + Arrow Up/Down` to navigate
+- 🖱️ **Mouse Wheel Navigation**: Use `Ctrl + Scroll` to navigate between messages
 - 🎨 **Smart Design**: Adapts to light/dark mode, responsive for mobile
 - ✨ **Visual Feedback**: Smooth scrolling with highlight effect on the current message
 - 🔄 **Auto-Update**: Automatically detects new messages in the conversation
@@ -36,10 +37,15 @@ Before loading the extension, you'll need icon files. You can either:
    - **↑ Up Arrow**: Jump to the previous question/answer
    - **↓ Down Arrow**: Jump to the next question/answer
 
-### Keyboard Shortcuts
+### Navigation Methods
 
+**Keyboard Shortcuts:**
 - `Alt + ↑`: Navigate to previous message
 - `Alt + ↓`: Navigate to next message
+
+**Mouse Wheel:**
+- `Ctrl + Scroll Up`: Navigate to previous message
+- `Ctrl + Scroll Down`: Navigate to next message
 
 ## How It Works
 
