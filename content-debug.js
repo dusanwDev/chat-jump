@@ -224,6 +224,9 @@
       resetNavigation();
       setTimeout(() => {
         getArticles();
+        // Detect where user is positioned after chat loads (usually at bottom)
+        detectCurrentArticle();
+        console.log(`📍 Detected current position: article ${currentIndex} of ${articles.length}`);
       }, 500); // Small delay to let new content load
     }
   }

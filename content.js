@@ -191,6 +191,8 @@
       resetNavigation();
       setTimeout(() => {
         getArticles();
+        // Detect where user is positioned after chat loads (usually at bottom)
+        detectCurrentArticle();
       }, 500); // Small delay to let new content load
     }
   }
