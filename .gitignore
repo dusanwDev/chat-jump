@@ -1,0 +1,23 @@
+# Icon files (can be regenerated)
+*.png
+icons/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+manifest-with-icons.json
+
+# Archives
+*.zip
+*.crx
+*.pem
