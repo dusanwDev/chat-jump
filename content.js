@@ -135,11 +135,15 @@
     const container = document.getElementById('chatgpt-nav-container');
     if (!container) return;
 
-    const promptContainer = document.getElementById('thread-bottom-container');
-    if (promptContainer) {
-      const rect = promptContainer.getBoundingClientRect();
-      // Position 15px to the right of the prompt container
-      const rightPosition = window.innerWidth - rect.right - 15;
+    // Find the prompt form/container using the composer form
+    const promptForm = document.querySelector('form.group\\/composer') ||
+                      document.querySelector('#prompt-textarea')?.closest('.bg-token-bg-primary') ||
+                      document.getElementById('thread-bottom');
+
+    if (promptForm) {
+      const rect = promptForm.getBoundingClientRect();
+      // Position 10px to the right of the prompt container
+      const rightPosition = window.innerWidth - rect.right - 10;
       container.style.right = `${rightPosition}px`;
     } else {
       // Fallback to default position if prompt container not found

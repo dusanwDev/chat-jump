@@ -16,21 +16,21 @@
   height: 48px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.8);
+  background: #10b981;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
   transition: all 0.2s ease;
   backdrop-filter: blur(10px);
 }
 
 .chatgpt-nav-btn:hover:not(.disabled) {
-  background: rgba(0, 122, 255, 0.9);
+  background: #059669;
   transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);
 }
 
 .chatgpt-nav-btn:active:not(.disabled) {
@@ -47,18 +47,18 @@
   height: 24px;
 }
 
-/* Dark mode support */
+/* Light mode support - keep green color consistent */
 @media (prefers-color-scheme: light) {
   .chatgpt-nav-btn {
-    background: rgba(255, 255, 255, 0.95);
-    color: #000;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: #10b981;
+    color: white;
+    border: 1px solid rgba(16, 185, 129, 0.3);
   }
 
   .chatgpt-nav-btn:hover:not(.disabled) {
-    background: rgba(0, 122, 255, 1);
+    background: #059669;
     color: white;
-    border-color: rgba(0, 122, 255, 1);
+    border-color: #059669;
   }
 }
 
