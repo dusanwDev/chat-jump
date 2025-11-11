@@ -183,8 +183,17 @@
       return;
     }
 
-    // Show buttons if in a chat
+    // Check if there are any articles on the page
+    const currentArticles = document.querySelectorAll('article[data-testid^="conversation-turn-"]');
+    if (currentArticles.length === 0) {
+      container.style.display = 'none';
+      console.log('👻 No articles found - hiding buttons');
+      return;
+    }
+
+    // Show buttons if in a chat and articles exist
     container.style.display = 'flex';
+    console.log(`✅ Articles found (${currentArticles.length}) - showing buttons`);
 
     // Find the prompt form/container using the composer form
     const promptForm = document.querySelector('form.group\\/composer') ||
