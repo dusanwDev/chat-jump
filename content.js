@@ -158,8 +158,8 @@
 
     if (promptForm) {
       const rect = promptForm.getBoundingClientRect();
-      // Position 45px to the right of the prompt container
-      const rightPosition = window.innerWidth - rect.right - 45;
+      // Position 55px to the right of the prompt container
+      const rightPosition = window.innerWidth - rect.right - 55;
       container.style.right = `${rightPosition}px`;
     } else {
       // Fallback to default position if prompt container not found
