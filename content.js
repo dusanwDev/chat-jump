@@ -230,6 +230,13 @@
     // Initial article detection
     getArticles();
 
+    // ChatGPT always loads at bottom of conversation
+    // Set position to last message so up arrow works immediately
+    if (articles.length > 0) {
+      currentIndex = articles.length - 1;
+    }
+    updateButtonStates();
+
     // Watch for new messages (using MutationObserver)
     const observer = new MutationObserver(() => {
       getArticles();

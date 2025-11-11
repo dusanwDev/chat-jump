@@ -272,6 +272,17 @@
     // Initial article detection
     setTimeout(() => {
       getArticles();
+
+      // ChatGPT always loads at bottom of conversation
+      // Set position to last message so up arrow works immediately
+      if (articles.length > 0) {
+        currentIndex = articles.length - 1;
+        console.log(`📍 Initial position set to last article: ${currentIndex} (bottom of chat)`);
+      } else {
+        console.log('⚠️ No articles found on initial load');
+      }
+      updateButtonStates();
+
       console.log('⏱️ Initial article scan completed');
     }, 1000);
 
