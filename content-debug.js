@@ -162,10 +162,29 @@
     }
   }
 
+  // Check if we're in a chat (not on beginning screen)
+  function isInChat() {
+    const url = window.location.href;
+    // Check if URL contains /c/ (chat ID pattern)
+    const inChat = url.includes('/c/');
+    console.log(`🔍 Checking if in chat: ${inChat} (URL: ${url})`);
+    return inChat;
+  }
+
   // Update button position relative to prompt container
   function updateButtonPosition() {
     const container = document.getElementById('chatgpt-nav-container');
     if (!container) return;
+
+    // Hide buttons if not in a chat
+    if (!isInChat()) {
+      container.style.display = 'none';
+      console.log('👻 Not in chat - hiding buttons');
+      return;
+    }
+
+    // Show buttons if in a chat
+    container.style.display = 'flex';
 
     // Find the prompt form/container using the composer form
     const promptForm = document.querySelector('form.group\\/composer') ||
@@ -174,10 +193,10 @@
 
     if (promptForm) {
       const rect = promptForm.getBoundingClientRect();
-      // Position 10px to the right of the prompt container
-      const rightPosition = window.innerWidth - rect.right - 10;
+      // Position 25px to the right of the prompt container (10px base + 15px extra)
+      const rightPosition = window.innerWidth - rect.right - 25;
       container.style.right = `${rightPosition}px`;
-      console.log(`📍 Positioned buttons ${rightPosition}px from right edge (10px right of prompt)`);
+      console.log(`📍 Positioned buttons ${rightPosition}px from right edge (25px right of prompt)`);
       console.log(`📦 Prompt container found:`, promptForm.className || promptForm.id);
     } else {
       // Fallback to default position if prompt container not found
