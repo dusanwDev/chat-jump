@@ -227,15 +227,27 @@
   function init() {
     createNavigationButtons();
 
-    // Initial article detection
-    getArticles();
+    // Wait for articles to load, then set initial position
+    function setInitialPosition() {
+      getArticles();
 
-    // ChatGPT always loads at bottom of conversation
-    // Set position to last message so up arrow works immediately
-    if (articles.length > 0) {
-      currentIndex = articles.length - 1;
+      if (articles.length > 0) {
+        // ChatGPT always loads at bottom of conversation
+        // Set position to last message so up arrow works immediately
+        currentIndex = articles.length - 1;
+        updateButtonStates();
+        return true;
+      }
+      return false;
     }
-    updateButtonStates();
+
+    // Try immediately
+    if (!setInitialPosition()) {
+      // If no articles yet, wait and try again
+      setTimeout(() => {
+        setInitialPosition();
+      }, 500);
+    }
 
     // Watch for new messages (using MutationObserver)
     const observer = new MutationObserver(() => {

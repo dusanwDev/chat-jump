@@ -269,22 +269,34 @@
 
     createNavigationButtons();
 
-    // Initial article detection
-    setTimeout(() => {
+    // Wait for articles to load, then set initial position
+    function setInitialPosition() {
       getArticles();
 
-      // ChatGPT always loads at bottom of conversation
-      // Set position to last message so up arrow works immediately
       if (articles.length > 0) {
+        // ChatGPT always loads at bottom of conversation
+        // Set position to last message so up arrow works immediately
         currentIndex = articles.length - 1;
-        console.log(`📍 Initial position set to last article: ${currentIndex} (bottom of chat)`);
+        console.log(`📍 Initial position set to last article: ${currentIndex} of ${articles.length} (bottom of chat)`);
+        updateButtonStates();
+        console.log(`🔘 Button states - Up: ${currentIndex > 0 ? 'ENABLED' : 'DISABLED'}, Down: ${currentIndex < articles.length - 1 ? 'ENABLED' : 'DISABLED'}`);
+        return true;
       } else {
-        console.log('⚠️ No articles found on initial load');
+        console.log('⚠️ No articles found yet, will retry...');
+        return false;
       }
-      updateButtonStates();
+    }
 
-      console.log('⏱️ Initial article scan completed');
-    }, 1000);
+    // Try immediately
+    if (!setInitialPosition()) {
+      // If no articles yet, wait and try again
+      setTimeout(() => {
+        console.log('🔄 Retrying initial position setup...');
+        setInitialPosition();
+      }, 500);
+    }
+
+    console.log('⏱️ Initial setup phase completed');
 
     // Watch for new messages (using MutationObserver)
     const observer = new MutationObserver(() => {
