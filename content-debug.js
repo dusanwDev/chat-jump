@@ -193,10 +193,10 @@
 
     if (promptForm) {
       const rect = promptForm.getBoundingClientRect();
-      // Position 25px to the right of the prompt container (10px base + 15px extra)
-      const rightPosition = window.innerWidth - rect.right - 25;
+      // Position 35px to the right of the prompt container
+      const rightPosition = window.innerWidth - rect.right - 35;
       container.style.right = `${rightPosition}px`;
-      console.log(`📍 Positioned buttons ${rightPosition}px from right edge (25px right of prompt)`);
+      console.log(`📍 Positioned buttons ${rightPosition}px from right edge (35px right of prompt)`);
       console.log(`📦 Prompt container found:`, promptForm.className || promptForm.id);
     } else {
       // Fallback to default position if prompt container not found
