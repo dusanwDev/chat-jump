@@ -11,6 +11,7 @@
   let currentIndex = -1;
   let articles = [];
   let lastUrl = window.location.href;
+  let initialized = false;
 
   // Create navigation buttons
   function createNavigationButtons() {
@@ -75,6 +76,7 @@
     console.log('🔄 Resetting navigation state (chat switched)');
     currentIndex = -1;
     articles = [];
+    initialized = false;
     updateButtonStates();
   }
 
@@ -82,7 +84,7 @@
   function getArticles() {
     articles = Array.from(document.querySelectorAll('article[data-testid^="conversation-turn-"]'));
     console.log(`📄 Found ${articles.length} conversation articles`);
-    updateButtonStates();
+    return articles.length;
   }
 
   // Navigate to previous article
@@ -94,14 +96,20 @@
       return;
     }
 
-    if (currentIndex <= 0) {
-      currentIndex = 0;
-    } else {
-      currentIndex--;
+    // If not initialized, start from bottom
+    if (currentIndex === -1) {
+      currentIndex = articles.length - 1;
+      console.log(`📍 Starting from bottom (last article): ${currentIndex}`);
     }
 
-    console.log(`📍 Navigating to article ${currentIndex} of ${articles.length}`);
-    scrollToArticle(currentIndex);
+    if (currentIndex > 0) {
+      currentIndex--;
+      console.log(`📍 Moving to article ${currentIndex} of ${articles.length}`);
+      scrollToArticle(currentIndex);
+    } else {
+      console.log('⚠️ Already at the top');
+    }
+
     updateButtonStates();
   }
 
@@ -114,16 +122,22 @@
       return;
     }
 
-    if (currentIndex < 0) {
-      currentIndex = 0;
-    } else if (currentIndex >= articles.length - 1) {
+    // If not initialized, start from bottom (shouldn't happen, but just in case)
+    if (currentIndex === -1) {
       currentIndex = articles.length - 1;
-    } else {
-      currentIndex++;
+      console.log(`📍 Starting from bottom: ${currentIndex}`);
+      updateButtonStates();
+      return;
     }
 
-    console.log(`📍 Navigating to article ${currentIndex} of ${articles.length}`);
-    scrollToArticle(currentIndex);
+    if (currentIndex < articles.length - 1) {
+      currentIndex++;
+      console.log(`📍 Moving to article ${currentIndex} of ${articles.length}`);
+      scrollToArticle(currentIndex);
+    } else {
+      console.log('⚠️ Already at the bottom');
+    }
+
     updateButtonStates();
   }
 
@@ -155,35 +169,53 @@
       return;
     }
 
-    // Disable up button if at the top
-    if (currentIndex <= 0) {
-      upButton.classList.add('disabled');
-      upButton.disabled = true;
-    } else {
-      upButton.classList.remove('disabled');
-      upButton.disabled = false;
-    }
+    console.log(`🔄 Updating button states: currentIndex=${currentIndex}, articles.length=${articles.length}`);
 
-    // Disable down button if at the bottom
-    if (currentIndex >= articles.length - 1) {
-      downButton.classList.add('disabled');
-      downButton.disabled = true;
-    } else {
-      downButton.classList.remove('disabled');
-      downButton.disabled = false;
-    }
+    const container = document.getElementById('chatgpt-nav-container');
 
     // Hide buttons if no articles
-    const container = document.getElementById('chatgpt-nav-container');
-    if (container) {
-      if (articles.length === 0) {
+    if (articles.length === 0) {
+      if (container) {
         container.style.display = 'none';
         console.log('👻 Hiding buttons (no articles)');
-      } else {
-        container.style.display = 'flex';
-        console.log(`👁️ Showing buttons (${articles.length} articles)`);
       }
+      return;
     }
+
+    // Show buttons
+    if (container) {
+      container.style.display = 'flex';
+    }
+
+    // Case 1: Not initialized yet or at bottom (currentIndex = -1 or last index)
+    if (currentIndex === -1 || currentIndex === articles.length - 1) {
+      // At bottom: can go UP, cannot go DOWN
+      upButton.classList.remove('disabled');
+      upButton.disabled = false;
+      downButton.classList.add('disabled');
+      downButton.disabled = true;
+      console.log('🔘 At BOTTOM: Up=ENABLED, Down=DISABLED');
+    }
+    // Case 2: At top (currentIndex = 0)
+    else if (currentIndex === 0) {
+      // At top: cannot go UP, can go DOWN
+      upButton.classList.add('disabled');
+      upButton.disabled = true;
+      downButton.classList.remove('disabled');
+      downButton.disabled = false;
+      console.log('🔘 At TOP: Up=DISABLED, Down=ENABLED');
+    }
+    // Case 3: In middle
+    else {
+      // In middle: can go both ways
+      upButton.classList.remove('disabled');
+      upButton.disabled = false;
+      downButton.classList.remove('disabled');
+      downButton.disabled = false;
+      console.log('🔘 In MIDDLE: Up=ENABLED, Down=ENABLED');
+    }
+
+    console.log(`👁️ Final state - Up: ${upButton.disabled ? 'DISABLED' : 'ENABLED'}, Down: ${downButton.disabled ? 'DISABLED' : 'ENABLED'}`);
   }
 
   // Handle keyboard shortcuts (Alt + Up/Down)
@@ -191,9 +223,11 @@
     if (e.altKey) {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
+        console.log('⌨️ Alt + Arrow Up pressed');
         navigateUp();
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
+        console.log('⌨️ Alt + Arrow Down pressed');
         navigateDown();
       }
     }
@@ -229,7 +263,10 @@
       const absoluteTop = rect.top + window.scrollY;
 
       if (absoluteTop <= scrollPosition) {
-        currentIndex = i;
+        if (currentIndex !== i) {
+          console.log(`📍 Detected scroll to article ${i}`);
+          currentIndex = i;
+        }
         break;
       }
     }
@@ -248,17 +285,28 @@
       // URL changed - reset and rescan
       resetNavigation();
       setTimeout(() => {
-        getArticles();
-        // ChatGPT always scrolls to bottom when switching chats
-        // Set position to last message so up arrow works immediately
-        if (articles.length > 0) {
-          currentIndex = articles.length - 1;
-          console.log(`📍 Set position to last article: ${currentIndex} (bottom of chat)`);
-        } else {
-          console.log('⚠️ No articles found after chat switch');
-        }
-        updateButtonStates();
+        setInitialPosition();
       }, 500); // Small delay to let new content load
+    }
+  }
+
+  // Set initial position (called on load and after chat switch)
+  function setInitialPosition() {
+    console.log('🎯 Setting initial position...');
+    const count = getArticles();
+
+    if (count > 0) {
+      // ChatGPT always loads at bottom of conversation
+      // Set position to last message (bottom) - user can only go UP initially
+      currentIndex = articles.length - 1;
+      initialized = true;
+      console.log(`✅ Initial position set to last article: ${currentIndex} of ${articles.length} (BOTTOM)`);
+      console.log(`   This means: User at BOTTOM → Up button ENABLED, Down button DISABLED`);
+      updateButtonStates();
+      return true;
+    } else {
+      console.log('⚠️ No articles found yet, will retry...');
+      return false;
     }
   }
 
@@ -269,30 +317,25 @@
 
     createNavigationButtons();
 
-    // Wait for articles to load, then set initial position
-    function setInitialPosition() {
-      getArticles();
-
-      if (articles.length > 0) {
-        // ChatGPT always loads at bottom of conversation
-        // Set position to last message so up arrow works immediately
-        currentIndex = articles.length - 1;
-        console.log(`📍 Initial position set to last article: ${currentIndex} of ${articles.length} (bottom of chat)`);
-        updateButtonStates();
-        console.log(`🔘 Button states - Up: ${currentIndex > 0 ? 'ENABLED' : 'DISABLED'}, Down: ${currentIndex < articles.length - 1 ? 'ENABLED' : 'DISABLED'}`);
-        return true;
-      } else {
-        console.log('⚠️ No articles found yet, will retry...');
-        return false;
-      }
-    }
-
-    // Try immediately
+    // Try to set initial position immediately
     if (!setInitialPosition()) {
-      // If no articles yet, wait and try again
-      setTimeout(() => {
-        console.log('🔄 Retrying initial position setup...');
-        setInitialPosition();
+      // If no articles yet, keep retrying
+      console.log('⏳ Articles not loaded yet, setting up retry mechanism...');
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      const retryInterval = setInterval(() => {
+        attempts++;
+        console.log(`🔄 Retry attempt ${attempts}/${maxAttempts}...`);
+
+        if (setInitialPosition()) {
+          console.log('✅ Successfully initialized after retry!');
+          clearInterval(retryInterval);
+        } else if (attempts >= maxAttempts) {
+          console.log('❌ Max retry attempts reached. Articles may not be available yet.');
+          console.log('💡 Extension will auto-detect articles when they appear.');
+          clearInterval(retryInterval);
+        }
       }, 500);
     }
 
@@ -301,7 +344,14 @@
     // Watch for new messages (using MutationObserver)
     const observer = new MutationObserver(() => {
       console.log('🔄 Page content changed, rescanning articles...');
+      const previousCount = articles.length;
       getArticles();
+
+      // If we just got articles for the first time, initialize position
+      if (previousCount === 0 && articles.length > 0 && !initialized) {
+        console.log('🎯 Articles appeared! Setting initial position...');
+        setInitialPosition();
+      }
     });
 
     // Observe the main chat container
@@ -317,8 +367,10 @@
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
-        getArticles();
-        detectCurrentArticle();
+        if (articles.length > 0) {
+          getArticles();
+          detectCurrentArticle();
+        }
       }, 100);
     });
 
@@ -348,7 +400,15 @@
     console.log('✅ Extension initialization complete!');
     console.log('💡 TIP: Look for buttons in the bottom-right corner');
     console.log('💡 TIP: Use Alt + Arrow Up/Down to navigate');
+    console.log('💡 TIP: Use Ctrl + Scroll to navigate');
     console.log('💡 TIP: Extension will auto-detect when you switch chats');
+
+    // Visual confirmation that extension loaded
+    console.log('');
+    console.log('═══════════════════════════════════════════');
+    console.log('  ChatGPT Quick Switch Extension ACTIVE');
+    console.log('═══════════════════════════════════════════');
+    console.log('');
   }
 
   // Wait for page to be ready

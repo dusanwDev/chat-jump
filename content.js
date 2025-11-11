@@ -7,6 +7,7 @@
   let currentIndex = -1;
   let articles = [];
   let lastUrl = window.location.href;
+  let initialized = false;
 
   // Create navigation buttons
   function createNavigationButtons() {
@@ -61,13 +62,14 @@
   function resetNavigation() {
     currentIndex = -1;
     articles = [];
+    initialized = false;
     updateButtonStates();
   }
 
   // Get all conversation articles
   function getArticles() {
     articles = Array.from(document.querySelectorAll('article[data-testid^="conversation-turn-"]'));
-    updateButtonStates();
+    return articles.length;
   }
 
   // Navigate to previous article
@@ -75,13 +77,16 @@
     getArticles();
     if (articles.length === 0) return;
 
-    if (currentIndex <= 0) {
-      currentIndex = 0;
-    } else {
-      currentIndex--;
+    // If not initialized, start from bottom
+    if (currentIndex === -1) {
+      currentIndex = articles.length - 1;
     }
 
-    scrollToArticle(currentIndex);
+    if (currentIndex > 0) {
+      currentIndex--;
+      scrollToArticle(currentIndex);
+    }
+
     updateButtonStates();
   }
 
@@ -90,15 +95,18 @@
     getArticles();
     if (articles.length === 0) return;
 
-    if (currentIndex < 0) {
-      currentIndex = 0;
-    } else if (currentIndex >= articles.length - 1) {
+    // If not initialized, start from bottom (shouldn't happen, but just in case)
+    if (currentIndex === -1) {
       currentIndex = articles.length - 1;
-    } else {
-      currentIndex++;
+      updateButtonStates();
+      return;
     }
 
-    scrollToArticle(currentIndex);
+    if (currentIndex < articles.length - 1) {
+      currentIndex++;
+      scrollToArticle(currentIndex);
+    }
+
     updateButtonStates();
   }
 
@@ -126,32 +134,44 @@
 
     if (!upButton || !downButton) return;
 
-    // Disable up button if at the top
-    if (currentIndex <= 0) {
-      upButton.classList.add('disabled');
-      upButton.disabled = true;
-    } else {
-      upButton.classList.remove('disabled');
-      upButton.disabled = false;
+    const container = document.getElementById('chatgpt-nav-container');
+
+    // Hide buttons if no articles
+    if (articles.length === 0) {
+      if (container) {
+        container.style.display = 'none';
+      }
+      return;
     }
 
-    // Disable down button if at the bottom
-    if (currentIndex >= articles.length - 1) {
+    // Show buttons
+    if (container) {
+      container.style.display = 'flex';
+    }
+
+    // Case 1: Not initialized yet or at bottom (currentIndex = -1 or last index)
+    if (currentIndex === -1 || currentIndex === articles.length - 1) {
+      // At bottom: can go UP, cannot go DOWN
+      upButton.classList.remove('disabled');
+      upButton.disabled = false;
       downButton.classList.add('disabled');
       downButton.disabled = true;
-    } else {
+    }
+    // Case 2: At top (currentIndex = 0)
+    else if (currentIndex === 0) {
+      // At top: cannot go UP, can go DOWN
+      upButton.classList.add('disabled');
+      upButton.disabled = true;
       downButton.classList.remove('disabled');
       downButton.disabled = false;
     }
-
-    // Hide buttons if no articles
-    const container = document.getElementById('chatgpt-nav-container');
-    if (container) {
-      if (articles.length === 0) {
-        container.style.display = 'none';
-      } else {
-        container.style.display = 'flex';
-      }
+    // Case 3: In middle
+    else {
+      // In middle: can go both ways
+      upButton.classList.remove('disabled');
+      upButton.disabled = false;
+      downButton.classList.remove('disabled');
+      downButton.disabled = false;
     }
   }
 
@@ -196,7 +216,9 @@
       const absoluteTop = rect.top + window.scrollY;
 
       if (absoluteTop <= scrollPosition) {
-        currentIndex = i;
+        if (currentIndex !== i) {
+          currentIndex = i;
+        }
         break;
       }
     }
@@ -212,46 +234,56 @@
       // URL changed - reset and rescan
       resetNavigation();
       setTimeout(() => {
-        getArticles();
-        // ChatGPT always scrolls to bottom when switching chats
-        // Set position to last message so up arrow works immediately
-        if (articles.length > 0) {
-          currentIndex = articles.length - 1;
-        }
-        updateButtonStates();
+        setInitialPosition();
       }, 500); // Small delay to let new content load
     }
+  }
+
+  // Set initial position (called on load and after chat switch)
+  function setInitialPosition() {
+    const count = getArticles();
+
+    if (count > 0) {
+      // ChatGPT always loads at bottom of conversation
+      // Set position to last message (bottom) - user can only go UP initially
+      currentIndex = articles.length - 1;
+      initialized = true;
+      updateButtonStates();
+      return true;
+    }
+    return false;
   }
 
   // Initialize the extension
   function init() {
     createNavigationButtons();
 
-    // Wait for articles to load, then set initial position
-    function setInitialPosition() {
-      getArticles();
-
-      if (articles.length > 0) {
-        // ChatGPT always loads at bottom of conversation
-        // Set position to last message so up arrow works immediately
-        currentIndex = articles.length - 1;
-        updateButtonStates();
-        return true;
-      }
-      return false;
-    }
-
-    // Try immediately
+    // Try to set initial position immediately
     if (!setInitialPosition()) {
-      // If no articles yet, wait and try again
-      setTimeout(() => {
-        setInitialPosition();
+      // If no articles yet, keep retrying
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      const retryInterval = setInterval(() => {
+        attempts++;
+
+        if (setInitialPosition()) {
+          clearInterval(retryInterval);
+        } else if (attempts >= maxAttempts) {
+          clearInterval(retryInterval);
+        }
       }, 500);
     }
 
     // Watch for new messages (using MutationObserver)
     const observer = new MutationObserver(() => {
+      const previousCount = articles.length;
       getArticles();
+
+      // If we just got articles for the first time, initialize position
+      if (previousCount === 0 && articles.length > 0 && !initialized) {
+        setInitialPosition();
+      }
     });
 
     // Observe the main chat container
@@ -266,8 +298,10 @@
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
-        getArticles();
-        detectCurrentArticle();
+        if (articles.length > 0) {
+          getArticles();
+          detectCurrentArticle();
+        }
       }, 100);
     });
 
