@@ -60,6 +60,9 @@
     upButton.addEventListener('click', navigateUp);
     downButton.addEventListener('click', navigateDown);
 
+    // Set initial position
+    setTimeout(() => updateButtonPosition(), 100);
+
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboard);
 
@@ -156,6 +159,25 @@
       setTimeout(() => {
         article.style.backgroundColor = originalBg;
       }, 1000);
+    }
+  }
+
+  // Update button position relative to prompt container
+  function updateButtonPosition() {
+    const container = document.getElementById('chatgpt-nav-container');
+    if (!container) return;
+
+    const promptContainer = document.getElementById('thread-bottom-container');
+    if (promptContainer) {
+      const rect = promptContainer.getBoundingClientRect();
+      // Position 15px to the right of the prompt container
+      const rightPosition = window.innerWidth - rect.right - 15;
+      container.style.right = `${rightPosition}px`;
+      console.log(`📍 Positioned buttons ${rightPosition}px from right edge (15px right of prompt)`);
+    } else {
+      // Fallback to default position if prompt container not found
+      container.style.right = '24px';
+      console.log('⚠️ Prompt container not found, using default position');
     }
   }
 
@@ -373,6 +395,17 @@
         }
       }, 100);
     });
+
+    // Update button position on window resize
+    window.addEventListener('resize', () => {
+      console.log('🔄 Window resized, updating button position...');
+      updateButtonPosition();
+    });
+
+    // Periodically update button position (handles dynamic UI changes)
+    setInterval(() => {
+      updateButtonPosition();
+    }, 2000);
 
     // Monitor URL changes for SPA navigation (when switching between chats)
     console.log('👁️ Setting up URL change monitoring...');
