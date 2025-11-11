@@ -397,8 +397,8 @@
     console.log('⏱️ Initial setup phase completed');
 
     // Watch for new messages (using MutationObserver)
-    const observer = new MutationObserver(() => {
-      console.log('🔄 Page content changed, rescanning articles...');
+    const observer = new MutationObserver((mutations) => {
+      console.log('🔄 Page content changed, checking for article updates...');
       const previousCount = articles.length;
       getArticles();
 
@@ -406,6 +406,12 @@
       if (previousCount === 0 && articles.length > 0 && !initialized) {
         console.log('🎯 Articles appeared! Setting initial position...');
         setInitialPosition();
+      }
+
+      // Update button visibility whenever articles count changes
+      if (previousCount !== articles.length) {
+        console.log(`📊 Article count changed: ${previousCount} → ${articles.length}`);
+        updateButtonPosition();
       }
     });
 

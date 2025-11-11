@@ -323,13 +323,18 @@
     }
 
     // Watch for new messages (using MutationObserver)
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((mutations) => {
       const previousCount = articles.length;
       getArticles();
 
       // If we just got articles for the first time, initialize position
       if (previousCount === 0 && articles.length > 0 && !initialized) {
         setInitialPosition();
+      }
+
+      // Update button visibility whenever articles count changes
+      if (previousCount !== articles.length) {
+        updateButtonPosition();
       }
     });
 
