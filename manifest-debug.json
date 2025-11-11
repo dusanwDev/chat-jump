@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Quick Switch (DEBUG)",
+  "version": "1.0.0",
+  "description": "Navigate faster between questions and answers in ChatGPT with arrow buttons - DEBUG VERSION with console logging",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
+      "js": ["content-debug.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ]
+}
